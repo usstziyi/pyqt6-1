@@ -67,6 +67,9 @@ class SelectionWidgetsDemo(QMainWindow):
         # 带用户数据的下拉框
         data_combo = QComboBox()
         # addItem(text, userData): 存储隐藏的用户数据
+        # addItem 的 userData 可以传任意 Python 对象
+        # 在 PyQt6 中，第二个参数的 C++ 类型是 QVariant 
+        # 映射到 Python 就是 Any ——几乎所有 Python 对象都可以。
         data_combo.addItem("低优先级", 0)
         data_combo.addItem("中优先级", 1)
         data_combo.addItem("高优先级", 2)
@@ -127,6 +130,9 @@ class SelectionWidgetsDemo(QMainWindow):
         slider_row.addWidget(self.slider)
         slider_row.addWidget(QLabel("100"))
         slider_layout.addLayout(slider_row)
+
+        # 自动吸附
+        self.slider.sliderReleased.connect(self.snap_to_interval)
 
         self.slider_value_label = QLabel("当前值: 50")
         self.slider.valueChanged.connect(
@@ -189,7 +195,7 @@ class SelectionWidgetsDemo(QMainWindow):
         # 状态栏
         self.status_label = QLabel("选择一个控件试试")
         self.status_label.setStyleSheet(
-            "background-color: #E3F2FD; padding: 10px; border-radius: 4px;"
+            "padding: 10px; border-radius: 4px;"
         )
         main_layout.addWidget(self.status_label)
 
@@ -197,6 +203,12 @@ class SelectionWidgetsDemo(QMainWindow):
 
     def _update_status(self, message):
         self.status_label.setText(message)
+
+    # 自动吸附
+    def snap_to_interval(self):
+        step = 10
+        val = self.slider.value() 
+        self.slider.setValue(round(val / step) * step)
 
 
 def main():
