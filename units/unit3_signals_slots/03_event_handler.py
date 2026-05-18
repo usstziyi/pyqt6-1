@@ -37,8 +37,9 @@ class EventHandlerDemo(QMainWindow):
         layout.addWidget(QLabel("1. 键盘事件 (keyPressEvent) - 按任意键试试:"))
 
         self.key_label = QLabel("等待按键...")
+        # padding 是 CSS（在这里是 Qt 的 QSS）属性，表示 控件内容与边框之间的内边距。
         self.key_label.setStyleSheet(
-            "background-color: #FFF9C4; padding: 10px; border-radius: 4px;"
+            "background-color: #34C759; padding: 10px; border-radius: 4px;"
         )
         layout.addWidget(self.key_label)
 
@@ -55,18 +56,34 @@ class EventHandlerDemo(QMainWindow):
         self.close_label = QLabel("关闭前会弹出确认对话框")
         layout.addWidget(self.close_label)
 
+        # 测试
+        myLineEdit = QLineEdit()
+        layout.addWidget(myLineEdit)
+
         layout.addStretch()
 
         self.setCentralWidget(central)
 
+        """
+        正常流程：  你按下键盘  →  输入框收到字符  →  显示在输入框里
+
+        安装过滤器后：
+        你按下键盘  →  【主窗口先截胡检查】→  是数字? →  放行给输入框
+                                            →  不是?   →  拦截，不传给输入框
+        """
         # 安装事件过滤器: 让 self 拦截 QLineEdit 的事件
         # 事件过滤器允许在其他对象之前处理事件
         self.filtered_edit = QLineEdit()
         self.filtered_edit.setPlaceholderText("输入时只允许数字 (事件过滤器拦截)")
         # installEventFilter(): 将 self 注册为 filtered_edit 的事件过滤器
+        # 也可以把别的QObject对象注册为事件过路器
+        # 让主窗口拦截它的键盘事件
+        # 这个 self = EventHandlerDemo 实例 = 主窗口
         self.filtered_edit.installEventFilter(self)
         layout.insertWidget(3, QLabel("4. 事件过滤器 - 只允许输入数字:"))
         layout.insertWidget(4, self.filtered_edit)
+
+
 
     # --- 键盘事件 ---
     def keyPressEvent(self, event: QKeyEvent):
@@ -74,6 +91,7 @@ class EventHandlerDemo(QMainWindow):
         # QKeyCombination 需用 key() 提取键值
         key = event.key()
         # Key_XXX: Qt.Key 枚举值
+        # 修饰不可见字符，保留可见字符
         key_name = {
             Qt.Key.Key_Return: "Enter",
             Qt.Key.Key_Escape: "Escape",
@@ -81,6 +99,9 @@ class EventHandlerDemo(QMainWindow):
             Qt.Key.Key_Backspace: "Backspace",
         }.get(key, event.text())
 
+        print(key_name)
+
+        # 返回一个 位掩码整数 ，每个修饰键占一个 bit
         modifiers = event.modifiers()
         mod_str = ""
         if modifiers & Qt.KeyboardModifier.ControlModifier:
@@ -126,6 +147,13 @@ class EventHandlerDemo(QMainWindow):
             event.ignore()  # 忽略关闭事件，阻止窗口关闭
 
     # --- 事件过滤器 ---
+    """
+    当 eventFilter 被触发时， obj 是 filtered_edit （输入框），
+    而执行 eventFilter 方法的是 self （主窗口实例）。
+    eventFilter 相当于在 EventHandlerDemo （主窗口）和 QLineEdit （输入框）之间插入了一道检查站：
+    注意：注册过滤器时不一定都用主窗口的，还可以自定义。
+    那么就不用重写主窗口的 eventFilter。
+    """
     def eventFilter(self, obj, event):
         # 只拦截 KeyPress 事件
         if obj is self.filtered_edit and event.type() == QEvent.Type.KeyPress:
@@ -141,9 +169,12 @@ class EventHandlerDemo(QMainWindow):
                 Qt.Key.Key_Home, Qt.Key.Key_End,
             }
             if key not in allowed:
-                # 返回 True 表示事件已被处理，不再传递给目标控件
+                # 返回 True 表示事件已被处理，不再传递给目标控件obj
+                # 事件被self主窗口拦截
+                print("吞噬")
                 return True
         # 返回 False 或调用父类，让事件继续传播
+        # 把事件交给QMainWindow，走正常流程
         return super().eventFilter(obj, event)
 
 
