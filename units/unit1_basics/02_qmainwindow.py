@@ -38,10 +38,10 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("QMainWindow 示例")
         self.resize(600, 400)
 
-        self._create_menu_bar()
-        self._create_tool_bar()
-        self._create_status_bar()
-        self._create_central_widget()
+        self._create_menu_bar()       # 创建菜单栏
+        self._create_tool_bar()       # 创建工具栏
+        self._create_status_bar()     # 创建状态栏
+        self._create_central_widget() # 创建中心控件
 
     def _create_menu_bar(self):
         # menuBar(): 获取 QMainWindow 自带的菜单栏 (不存在则自动创建)
@@ -106,7 +106,7 @@ class MainWindow(QMainWindow):
         # setCentralWidget(): 设置 QMainWindow 的中心控件
         # 这个控件会占据菜单栏/工具栏/状态栏之间的所有空间
         label = QLabel("欢迎使用 PyQt6 QMainWindow!\n请查看菜单栏和工具栏。")
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter) # 设置对齐方式
         # 设置字体稍微大一些
         font = label.font()
         font.setPointSize(16)

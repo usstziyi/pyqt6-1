@@ -43,8 +43,9 @@ class CenteredWindow(QMainWindow):
         # availableGeometry(): 返回可用屏幕区域的 QRect (不含任务栏)
         screen_rect = screen.availableGeometry()
         # 计算窗口居中位置: 屏幕中心 - 窗口尺寸的一半
-        x = (screen_rect.width() - self.width()) // 2
-        y = (screen_rect.height() - self.height()) // 2
+        # 坐标原点是availableGeometry区域的左上角
+        x = (screen_rect.width() - self.width()) // 2  # 对齐两个矩形的宽中线
+        y = (screen_rect.height() - self.height()) // 2 # 对齐两个矩形的高中线
         self.move(x, y)
 
 
@@ -72,6 +73,7 @@ class WindowFlagsDemo(QMainWindow):
 
         btn_min = QPushButton("最小化窗口")
         # showMinimized(): 将窗口最小化到任务栏
+        # showMinimized是 PyQt6 框架内置的槽函数
         btn_min.clicked.connect(self.showMinimized)
         layout.addWidget(btn_min)
 
@@ -100,6 +102,7 @@ class WindowFlagsDemo(QMainWindow):
         self.status_label = QLabel()
         layout.addWidget(self.status_label)
 
+        # 这行代码向布局中添加了一个 弹性空间（stretch）
         layout.addStretch()
         self.setCentralWidget(central)
 
