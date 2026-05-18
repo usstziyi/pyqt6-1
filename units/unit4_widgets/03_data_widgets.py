@@ -70,6 +70,7 @@ class DataWidgetsDemo(QMainWindow):
         # QListWidget: 基于项的列表
         self.list_widget = QListWidget()
         # setSelectionMode: 支持多选
+        # 用于设置列表中项的 选择模式 ，即用户如何选中列表中的条目。
         self.list_widget.setSelectionMode(
             QListWidget.SelectionMode.ExtendedSelection
         )
@@ -116,6 +117,7 @@ class DataWidgetsDemo(QMainWindow):
         # setHeaderLabels: 设置列标题
         self.tree.setHeaderLabels(["名称", "大小", "类型"])
         # 设置列宽模式: 第一列拉伸
+        # 当用户拖大窗口时，这一列会自动撑开吸收多余的空间。
         self.tree.header().setSectionResizeMode(
             0, QHeaderView.ResizeMode.Stretch
         )
@@ -138,7 +140,7 @@ class DataWidgetsDemo(QMainWindow):
         # 设置背景色示例
         for i in range(src.childCount()):
             child = src.child(i)
-            child.setBackground(0, QColor("#E8F5E9"))
+            # child.setBackground(0, QColor("#E8F5E9"))
 
         # itemClicked: 项被点击
         self.tree.itemClicked.connect(
