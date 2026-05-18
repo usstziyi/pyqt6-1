@@ -36,7 +36,7 @@ class TaskWorker(QObject):
     started = pyqtSignal()
     # 声明信号: 携带 int 参数 (如进度百分比)
     progress = pyqtSignal(int)
-    # 声明信号: 携带 str 参数 (如状态消息)
+    # 声明信号: 携带 str 参数 (如日志消息)
     message = pyqtSignal(str)
     # 声明信号: 无参数
     finished = pyqtSignal()
@@ -48,6 +48,7 @@ class TaskWorker(QObject):
         total_steps = 5
         for i in range(total_steps):
             time.sleep(0.5)
+            # pct全称percent
             progress_pct = int((i + 1) / total_steps * 100)
             # 发射信号，传递进度值
             self.progress.emit(progress_pct)
@@ -77,12 +78,15 @@ class CustomSignalDemo(QMainWindow):
         layout.addWidget(QLabel("日志:"))
         self.log_output = QTextEdit()
         self.log_output.setReadOnly(True)
+        # 设置 self.log_output （一个 QTextEdit 控件）的 最大高度为 150 像素。
+        # 无论布局怎么拉伸，这个文本框的高度都不会超过 150px。
         self.log_output.setMaximumHeight(150)
         layout.addWidget(self.log_output)
 
         # 控制按钮
         btn_layout = QHBoxLayout()
         self.start_btn = QPushButton("开始任务")
+        # 信号的参数比槽多时，PyQt 自动丢弃多余的参数 。这是 PyQt 信号槽机制的兼容性设计
         self.start_btn.clicked.connect(self._start_task)
         btn_layout.addWidget(self.start_btn)
 
@@ -115,8 +119,8 @@ class CustomSignalDemo(QMainWindow):
         self._worker.progress.connect(self._on_progress)
         # 2. 直接连接到控件的方法 (参数匹配)
         self._worker.message.connect(self.log_output.append)
-        # 3. 连接到 lambda (带额外处理)
-        self._worker.finished.connect(lambda: self._on_worker_finished)
+        # 3. 连接到 lambda (不带额外处理)
+        self._worker.finished.connect(lambda:self._on_worker_finished())
 
         # 触发任务执行
         self._worker.do_work()
