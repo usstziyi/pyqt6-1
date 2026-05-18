@@ -89,7 +89,7 @@ class TimerDemo(QMainWindow):
         self.clock_label = QLabel()
         self.clock_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.clock_label.setStyleSheet(
-            "font-size: 24px; font-weight: bold; font-family: monospace;"
+            "font-size: 24px; font-weight: bold; font-family: Menlo;"
         )
         clock_layout.addWidget(self.clock_label)
 
