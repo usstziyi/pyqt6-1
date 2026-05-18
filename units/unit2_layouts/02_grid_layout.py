@@ -12,6 +12,10 @@ Unit 2.2: QGridLayout —— 网格布局
   - colSpan: 控件占据的列数 (默认 1)
   - setColumnStretch(col, factor): 设置第 col 列的伸缩因子
 
+比较：
+ - setSpacing(n) — 设置布局内 控件之间的间距 （像素），不包括边距。这里的 n=10 表示相邻格子之间留 10px 的空隙。
+ - setContentsMargins(left, top, right, bottom) — 设置布局 四周的边距 。
+
 API 参考:
   https://www.riverbankcomputing.com/static/Docs/PyQt6/api/qtwidgets/qgridlayout.html
 """
@@ -33,13 +37,19 @@ class GridLayoutDemo(QMainWindow):
         grid = QGridLayout(central)
 
         # setSpacing(px): 设置格子之间的间距
+        # 设置布局内 控件之间的间距 （像素），不包括边距。这里的 n=10 表示相邻格子之间留 10px 的空隙。
         grid.setSpacing(10)
 
         # -- 注册表单示例 --
+        # QGridLayout 是"先填充，自动推算出尺寸"
         grid.addWidget(QLabel("用户名:"), 0, 0)
-        grid.addWidget(QLineEdit(), 0, 1, 1, 2)
-        #                row col  rowSpan colSpan
-        # 上方的 1, 2 表示 QLineEdit 占据 1 行、2 列
+        grid.addWidget(
+            QLineEdit(),       # 要添加的控件：单行文本输入框
+            0,                 # 行号：第 0 行
+            1,                 # 列号：第 1 列
+            1,                 # 行跨度：占据 1 行（不跨行）
+            2                  # 列跨度：占据 2 列（跨 2 列）
+        )
 
         grid.addWidget(QLabel("密码:"), 1, 0)
         grid.addWidget(QLineEdit(), 1, 1, 1, 2)
@@ -71,7 +81,8 @@ class GridLayoutDemo(QMainWindow):
             btn = QPushButton(text)
             grid.addWidget(btn, row, col)
 
-        # 设置列拉伸因子，让第 0、1、2 列均分剩余空间
+        # 设置列拉伸因子，让第 0、1、2、3 列均分剩余空间
+        # 四列都设为 1，意味着 当窗口被拉大时，多余的空间会均分给 4 列
         for col in range(4):
             grid.setColumnStretch(col, 1)
 

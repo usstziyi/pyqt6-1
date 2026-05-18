@@ -32,8 +32,12 @@ class BoxLayoutDemo(QMainWindow):
         self.resize(500, 400)
 
         central = QWidget()
-        # 主布局: 垂直布局
+        # 把垂直布局装到center这个QWidget上，一步到位
         main_layout = QVBoxLayout(central)
+
+        # # 等价于：
+        # main_layout = QVBoxLayout()      # 1. 创建布局
+        # central.setLayout(main_layout)   # 2. 把布局装到 central 上
 
         # 顶部标签
         title = QLabel("线形布局嵌套示例")

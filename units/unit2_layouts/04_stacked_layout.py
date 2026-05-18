@@ -30,6 +30,7 @@ class StackedLayoutDemo(QMainWindow):
         self.resize(500, 350)
 
         central = QWidget()
+        # 一步到位
         main_layout = QVBoxLayout(central)
 
         # --- 切换按钮 ---
@@ -55,6 +56,7 @@ class StackedLayoutDemo(QMainWindow):
         label1 = QLabel("页面 1: 个人信息")
         label1.setAlignment(Qt.AlignmentFlag.AlignCenter)
         label1.setStyleSheet("font-size: 20px;")
+        # 这句代码创建一个 垂直布局管理器 （ QVBoxLayout ），并将其设置为 page1 这个 QWidget 的布局。
         layout1 = QVBoxLayout(page1)
         layout1.addWidget(label1)
 
@@ -108,6 +110,7 @@ class TabWidgetDemo(QMainWindow):
         layout1.addWidget(QLabel("这是标签页 1 的内容"))
         layout1.addWidget(QPushButton("按钮 A"))
         layout1.addStretch()
+        # addTab(): 添加标签页，参数为 (页面控件, 标签标题)
         tabs.addTab(tab1, "常规")
 
         # 创建标签页 2
