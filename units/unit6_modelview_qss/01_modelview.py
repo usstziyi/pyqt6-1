@@ -142,7 +142,7 @@ class ModelViewDemo(QMainWindow):
         self.proxy_model.setSourceModel(self.model)
         # 禁用代理模型的排序 (由 TableView 自己处理)
         self.proxy_model.setDynamicSortFilter(False)
-        # 设置过滤角色: DisplayRole (显示文本)
+        # 设置过滤角色: DisplayRole (以显示文本作为被搜索对象)
         self.proxy_model.setFilterRole(Qt.ItemDataRole.DisplayRole)
         # setFilterKeyColumn(-1): 搜索所有列
         self.proxy_model.setFilterKeyColumn(-1)
@@ -174,14 +174,23 @@ class ModelViewDemo(QMainWindow):
         self._update_status()
 
     def _delete_row(self):
+        # 因为 View 绑定的模型是 Proxy Model
         # 获取当前选中的索引 (来自 proxy model)
-        proxy_indexes = self.table_view.selectionModel().selectedRows()
+        # 这行代码获取 用户在 TableView 中当前选中的所有行
+        # 获取用户在 TableView 中当前选中的所有行
+        proxy_indexes = (
+            self.table_view
+            .selectionModel()  # 获取选择模型
+            .selectedRows()     # 获取选中的行索引列表
+        ) # 没有逗号，所以 () 只是续行，返回值就是 .selectedRows() 的结果：list[QModelIndex]
         if not proxy_indexes:
             return
 
-        # 将 proxy index 映射回 source model 的 index
+        # 取第一个
         proxy_index = proxy_indexes[0]
+        # 映射到源模型
         source_index = self.proxy_model.mapToSource(proxy_index)
+        # 删除源模型中的行
         self.model.removeRow(source_index.row())
         self._update_status()
 
@@ -214,8 +223,8 @@ class ModelViewDemo(QMainWindow):
         )
 
     def _update_status(self):
-        total = self.model.rowCount()
-        visible = self.proxy_model.rowCount()
+        total = self.model.rowCount()      # 源模型的总行数（包含所有数据）
+        visible = self.proxy_model.rowCount()  # 代理模型的可见行数（过滤后显示的行数）
         if total == visible:
             self.status_label.setText(f"共 {total} 行")
         else:
