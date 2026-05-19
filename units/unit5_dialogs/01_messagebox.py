@@ -43,7 +43,8 @@ class MessageBoxDemo(QMainWindow):
         info_btn.clicked.connect(
             lambda: QMessageBox.information(
                 self, "信息", "这是一个信息提示框。",
-                QMessageBox.StandardButton.Ok
+                QMessageBox.StandardButton.Ok,
+                QMessageBox.StandardButton.Abort
             )
         )
         std_layout.addWidget(info_btn)
@@ -188,6 +189,7 @@ class MessageBoxDemo(QMainWindow):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
         # 添加额外按钮
+        # ActionRole 表示这是一个"动作类"按钮——点击它会触发某种操作，而不是接受或拒绝对话框。它通常位于按钮组的左侧。
         review_btn = msg.addButton("查看详情(&R)", QMessageBox.ButtonRole.ActionRole)
         msg.setDefaultButton(QMessageBox.StandardButton.No)
 
@@ -197,6 +199,8 @@ class MessageBoxDemo(QMainWindow):
             self._log("用户选择了: 提交")
         elif reply == QMessageBox.StandardButton.No:
             self._log("用户选择了: 不提交")
+        # clickedButton() 只存在于 QMessageBox 类上， 
+        # QWidget 和 QDialog 都没有这个方法。它并非通用接口。
         elif msg.clickedButton() == review_btn:
             self._log("用户选择了: 查看详情")
 
