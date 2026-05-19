@@ -246,11 +246,11 @@ class QSSDemo(QMainWindow):
         theme_layout = QHBoxLayout()
         theme_layout.addWidget(QLabel("主题:"))
 
-        theme_combo = QComboBox()
-        theme_combo.addItems(["Material Light (QSS)", "Fusion (Qt内置)", "默认"])
-        # activated(int) 信号: 用户选择某项目
-        theme_combo.activated.connect(self._switch_theme)
-        theme_layout.addWidget(theme_combo)
+        self.theme_combo = QComboBox()
+        self.theme_combo.addItems(["Material Light (QSS)", "Fusion (Qt内置)", "默认"])
+        self.theme_combo.setCurrentIndex(0)
+        self.theme_combo.activated.connect(self._switch_theme)
+        theme_layout.addWidget(self.theme_combo)
 
         theme_layout.addStretch()
 
@@ -366,7 +366,7 @@ class QSSDemo(QMainWindow):
 
         self.text_edit = QTextEdit()
         self.text_edit.setPlaceholderText("这是用于测试样式的文本区域...")
-        self.text_edit.setMaximumHeight(80)
+        # self.text_edit.setMaximumHeight(80)
         text_layout.addWidget(self.text_edit)
 
         main_layout.addWidget(text_group)
@@ -377,12 +377,11 @@ class QSSDemo(QMainWindow):
         self._apply_qss()
 
     def _apply_qss(self):
-        # setStyleSheet: 可以作用于 QApplication 全局，也可作用于单个控件
-        # 全局应用: app.setStyleSheet(qss)
-        # 窗口级: self.setStyleSheet(qss)
         app = QApplication.instance()
         if app:
             app.setStyleSheet(LIGHT_THEME_QSS)
+            app.setStyle("Fusion")
+            self.theme_combo.setCurrentIndex(0)
 
     def _switch_theme(self, index):
         app = QApplication.instance()
@@ -391,16 +390,17 @@ class QSSDemo(QMainWindow):
 
         if index == 0:
             # QSS 自定义主题
-            app.setStyleSheet(LIGHT_THEME_QSS)
-            app.setStyle("Fusion")
+            app.setStyleSheet(LIGHT_THEME_QSS) # 叠加一层 CSS 样式
+            app.setStyle("Fusion")             # 设置底层的渲染引擎,负责"怎么画"
+            # Fusion 是 Qt 自己画的，100% 受 QSS 控制
         elif index == 1:
             # Qt 内置 Fusion 主题 (无 QSS)
             app.setStyleSheet("")
             app.setStyle("Fusion")
         else:
-            # 系统默认主题
+            # macos系统默认主题
             app.setStyleSheet("")
-            app.setStyle("")
+            app.setStyle("macos")
 
 
 def main():
