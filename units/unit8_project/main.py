@@ -838,7 +838,7 @@ class TaskFlowMainWindow(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
-    app.setStyleSheet(APP_QSS)
+    # app.setStyleSheet(APP_QSS)
 
     window = TaskFlowMainWindow()
     window.show()

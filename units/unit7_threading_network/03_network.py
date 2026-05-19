@@ -104,19 +104,38 @@ class NetworkDemo(QMainWindow):
         main_layout.addWidget(resp_group)
 
         self.setCentralWidget(central)
+        """
+        ### QNetworkAccessManager 是什么？
+        它是 Qt 网络模块的核心类，负责：
 
+        - 发送 HTTP 请求（ get() 、 post() 、 put() 等）
+        - 管理所有网络操作的生命周期
+        - 异步收发数据 ，内部使用操作系统的网络栈，不阻塞 UI 线程
+
+        一个 QNetworkAccessManager 可以同时管理多个并发请求，
+        每个请求返回时都会触发 finished 信号，并携带对应的 QNetworkReply 对象。
+        槽函数 _on_reply_finished 负责统一处理所有请求的响应数据
+        """
         # 创建 QNetworkAccessManager (整个应用程序通常只需一个实例)
+        # self 作为父对象传入，意味着当窗口销毁时，这个管理器也会被自动清理，避免内存泄漏
         self._manager = QNetworkAccessManager(self)
+        # 将管理器的 finished 信号 连接到 _on_reply_finished 槽函数
         self._manager.finished.connect(self._on_reply_finished)
 
     def _do_get_request(self):
         """简单的 GET 请求"""
         url = QUrl("https://httpbin.org/get")
+        # 用该 URL 构建一个 HTTP 请求对象， 
+        # QNetworkRequest 相当于"信封"，承载 URL、Header 等请求信息
         request = QNetworkRequest(url)
+        # 设置请求头 Content-Type: application/json ，
+        # 告诉服务器"我期望的响应格式是 JSON"
         request.setHeader(
             QNetworkRequest.KnownHeaders.ContentTypeHeader,
             "application/json"
         )
+        # 通过 QNetworkAccessManager 发起 GET 请求 。
+        # 这是 异步 的，不会阻塞 UI 线程，响应通过信号/槽机制返回
         self._manager.get(request)
         self.status_label.setText("正在 GET /get ...")
 
@@ -189,6 +208,8 @@ class NetworkDemo(QMainWindow):
         # 尝试格式化 JSON
         try:
             parsed = json.loads(text)
+            # 不将非 ASCII 字符转义为 \uXXXX 。
+            # 例如中文 "你好" 会直接保留，而不是变成 "\u4f60\u597d"
             formatted = json.dumps(parsed, ensure_ascii=False, indent=2)
         except json.JSONDecodeError:
             formatted = text
@@ -199,7 +220,16 @@ class NetworkDemo(QMainWindow):
 
         self.resp_text.setPlainText(formatted)
 
-        # 获取 HTTP 状态码和 URL
+
+        """
+        获取 HTTP 状态码和 URL
+        QNetworkReply 中的 HTTP 相关元数据（状态码、状态文本、重定向目标等）
+        不是通过直接属性访问的，而是存放在一个 通用的键值存储 中，通过 attribute(key) 来获取。
+        
+        HttpStatusCodeAttribute      HTTP 状态码  如 200 、 404 、 500 
+        HttpReasonPhraseAttribute    状态描述文本  如 "OK" 、 "Not Found" 
+        RedirectionTargetAttribute   重定向目标 URL
+        """
         status = reply.attribute(
             QNetworkRequest.Attribute.HttpStatusCodeAttribute
         )
@@ -212,6 +242,7 @@ class NetworkDemo(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
+    app.setStyle("Fusion")
     window = NetworkDemo()
     window.show()
     sys.exit(app.exec())
