@@ -22,7 +22,8 @@ import time
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget,
     QVBoxLayout, QHBoxLayout, QGroupBox,
-    QPushButton, QLabel, QProgressBar, QTextEdit
+    QPushButton, QLabel, QProgressBar, QTextEdit,
+    QStyle
 )
 from PyQt6.QtCore import (
     Qt, QThread, QObject, pyqtSignal
@@ -61,7 +62,7 @@ class HeavyTaskWorker(QObject):
             self.log.emit(f"步骤 {i + 1}/{complexity}: 当前累计 = {total}")
 
         self.log.emit(f"计算完成! 总计 = {total}")
-        self.finished.emit()
+        self.finished.emit()  # worker发出finished信号
 
     def run_file_processing(self, file_count=5):
         """
@@ -175,6 +176,24 @@ class ThreadDemo(QMainWindow):
         ts = datetime.now().strftime("%H:%M:%S")
         self.log_output.append(f"[{ts}] {msg}")
 
+
+
+    """
+        ----------标准流程----------
+        self.thread = QThread()
+        self.worker = Worker()
+
+        self.worker.moveToThread(self.thread)
+
+        self.thread.started.connect(self.worker.run) # 跨线程信号-槽
+
+        self.worker.finished.connect(self.worker.deleteLater) # 告诉子线程事件循环来回收worker
+        self.worker.finished.connect(self.thread.quit)        # 告诉子线程事件循环关机
+
+        self.thread.finished.connect(self.thread.deleteLater) # 告诉主线程事件循环来回收thread
+
+        self.thread.start()
+    """
     def _start_task(self, task_type):
         # 禁用按钮防止重复启动
         self._set_buttons_enabled(False)
@@ -182,13 +201,17 @@ class ThreadDemo(QMainWindow):
         self.progress_bar.setValue(0)
 
         # 1. 创建 QThread (子线程)
-        self._thread = QThread()
+        self._thread = QThread() # 无parent
 
         # 2. 创建 Worker (无 parent, 稍后 moveToThread)
-        self._worker = HeavyTaskWorker()
+        self._worker = HeavyTaskWorker() # 无parent
 
         # 3. 将 Worker 移动到子线程
         # moveToThread 后, Worker 的所有槽函数在子线程中执行
+        # Worker 以孤儿身份创建 → 搬运到子线程 → 再通过 deleteLater 信号链自行清理，全程不依赖 Qt 对象树。
+        # thread affinity 对象属于哪个线程 决定槽函数在哪个线程执行、信号队列如何调度。
+        # Worker 虽然运行在子线程的事件循环中，但它仍然是孤儿对象，
+        # 所以最终依靠 worker.finished → worker.deleteLater() 这条信号链来自我清理。
         self._worker.moveToThread(self._thread)
 
         # 4. 连接信号与槽 (跨线程信号是线程安全的)
@@ -205,11 +228,28 @@ class ThreadDemo(QMainWindow):
         elif task_type == "fetch":
             self._thread.started.connect(self._worker.run_data_fetch)
 
+
+        """
+        worker.finished 发射 (子线程中)
+
+        deleteLater()          quit()
+            │                     │
+            ▼                     ▼
+        向事件循环投递          告诉事件循环
+        DeferredDelete 事件      "处理完就退出"
+            │                     │
+            └──────┬──────────────┘
+                   ▼
+            事件循环收尾时：
+            先清空删除队列 (worker 析构)
+            再 exec() 返回
+            然后发送thread.finished
+        """
         # 6. Worker 完成后退出线程
-        self._worker.finished.connect(self._thread.quit)
-        # 确保 Worker 在 thread 之前被清理
-        self._worker.finished.connect(self._worker.deleteLater)
-        self._thread.finished.connect(self._thread.deleteLater)
+        self._worker.finished.connect(self._thread.quit)        # 告诉子线程的事件循环："处理完当前事件后就停止"
+        self._worker.finished.connect(self._worker.deleteLater) # 由子线程事件循环回收
+        # 告诉主线程：子线程事件循环已经关闭，开来回收子线程资源
+        self._thread.finished.connect(self._thread.deleteLater) # 由主线程事件循环回收
 
         # 7. 启动线程
         self._thread.start()
@@ -222,8 +262,13 @@ class ThreadDemo(QMainWindow):
     def _cancel_task(self):
         if self._thread and self._thread.isRunning():
             # quit() + wait(): 优雅退出线程
-            self._thread.quit()
+            # worker 里的 for 循环每一轮之间，不会自动把控制权还给 QThread.exec() 事件循环
+            # quit() 不会停止你的 worker 函数
+            # 只有等for循环结束，exec才能得到cpu
+            self._thread.quit() 
             self._thread.wait()
+            # 取消后立即更新 UI（按钮状态、进度条），此时如果子线程还在收尾，
+            # 可能会同时修改共享状态，造成竞态条件。
             self._append_log("任务已取消")
             self._set_buttons_enabled(True)
             self.cancel_btn.setEnabled(False)
@@ -249,6 +294,7 @@ class ThreadDemo(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
+    app.setStyle("Fusion")
     window = ThreadDemo()
     window.show()
     sys.exit(app.exec())
