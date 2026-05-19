@@ -51,6 +51,7 @@ class LoginDialog(QDialog):
         self.password_edit.setPlaceholderText("请输入密码")
         form.addRow("密码:", self.password_edit)
 
+        # 布局可以直接嵌套
         layout.addLayout(form)
 
         # 标准按钮框
@@ -71,12 +72,11 @@ class LoginDialog(QDialog):
         username = self.username_edit.text().strip()
         password = self.password_edit.text().strip()
         if not username or not password:
-            # 简单验证: 必填
             self.username_edit.setFocus()
-            return
+            return                              # ← 验证失败：直接 return，不调用 accept()
         self.username = username
         self.password = password
-        self.accept()  # 设置结果为 Accepted 并关闭
+        self.accept()                           # ← 验证通过：才关闭对话框
 
     def get_credentials(self):
         return self.username, self.password
@@ -123,9 +123,8 @@ class PreferencesDialog(QDialog):
         )
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
-        buttons.button(QDialogButtonBox.StandardButton.RestoreDefaults).clicked.connect(
-            self._restore_defaults
-        )
+        restore_btn = buttons.button(QDialogButtonBox.StandardButton.RestoreDefaults)
+        restore_btn.clicked.connect(self._restore_defaults)
         layout.addWidget(buttons)
 
     def _restore_defaults(self):
