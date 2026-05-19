@@ -79,8 +79,8 @@ class TimerDemo(QMainWindow):
         # 创建倒计时器
         self._countdown_timer = QTimer(self)
         self._countdown_timer.timeout.connect(self._on_countdown_tick)
-        self._countdown_remaining = 0
-        self._countdown_total = 0
+        self._countdown_remaining = 0  # 剩余倒计时秒数
+        self._countdown_total = 0      # 倒计时总秒数（用于计算进度条百分比）
 
         # === 实时时钟 ===
         clock_group = QGroupBox("2. 实时时钟 (每秒更新)")
@@ -242,6 +242,7 @@ class TimerDemo(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
+    app.setStyle("Fusion")
     window = TimerDemo()
     window.show()
     sys.exit(app.exec())
