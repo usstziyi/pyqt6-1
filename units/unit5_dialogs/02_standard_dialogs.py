@@ -164,7 +164,9 @@ class StandardDialogsDemo(QMainWindow):
     def _select_directory(self):
         # getExistingDirectory: 选择目录
         directory = QFileDialog.getExistingDirectory(
-            self, "选择目录", ""
+            self, 
+            "选择目录", 
+            ""
         )
         if directory:
             self._log(f"选择目录: {directory}")
@@ -180,13 +182,14 @@ class StandardDialogsDemo(QMainWindow):
         # getColor(initial, parent, title): 返回 QColor
         color = QColorDialog.getColor(QColor("#4CAF50"), self, "选择颜色")
         if color.isValid():
+            # 返回 #000000 格式
             hex_color = color.name()
             self.color_preview.setStyleSheet(
                 f"min-width: 80px; min-height: 40px; background-color: {hex_color};"
                 "border: 1px solid #999; border-radius: 4px;"
             )
             self.color_label.setText(hex_color)
-            self._log(f"选择颜色: {hex_color}")
+            self._log(f"选择颜色: {color.value()}")
 
     def _input_text(self):
         # getText(parent, title, label, echo=Normal, text='', ...)
